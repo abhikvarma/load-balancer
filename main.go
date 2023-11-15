@@ -83,7 +83,7 @@ func main() {
 		Handler: http.HandlerFunc(lb.Serve),
 	}
 
-	go serverpool.LaunchHealthCheck(ctx, sp, config.HealthCheckIntervalInSec)
+	go lb.LaunchHealthCheck(ctx, config.HealthCheckIntervalInSec)
 
 	go func() {
 		<-ctx.Done()
