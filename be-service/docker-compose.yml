@@ -1,0 +1,18 @@
+version: '3'
+services:
+  backend1:
+    image: quoter
+    ports:
+      - 8001:8001 
+  backend2:  
+    image: quoter
+    ports: 
+      - 8002:8001
+  backend3:
+    image: quoter
+    ports:
+      - 8003:8001
+  backend4:
+    image: quoter
+    ports:
+      - 8004:8001
