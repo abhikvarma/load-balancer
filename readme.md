@@ -1,4 +1,11 @@
 # load-balancer
+
+<p float="left">
+  <img src='demo-server.gif' width='400'>
+  <img src='demo-client.gif' width='400'>
+</p>
+
+
 a load balancer service written in Go
 * provides load balancing across multiple backend services using 
   - round robin 
