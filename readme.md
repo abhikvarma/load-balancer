@@ -1,7 +1,7 @@
 # load-balancer
 
-<img src='demo-server.gif' width='600'>
-<img src='demo-client.gif' width='600'>
+<img src='demo-server.gif' width='300'>
+<img src='demo-client.gif' width='300'>
 
 
 a load balancer service written in Go
