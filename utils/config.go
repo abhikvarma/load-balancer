@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -56,12 +57,12 @@ func GetLBConfig() (*Config, error) {
 	}
 
 	if config.HealthCheckIntervalInSec <= 0 || config.HealthCheckIntervalInSec > 600 {
-		Logger.Warn(fmt.Sprintf("health_check_interval_in_sec outside the range (0, 600], reverting to the default of %d", DEFAULT_HEALTH_CHECK_INTERVAL_IN_SEC))
+		log.Warn(fmt.Sprintf("health_check_interval_in_sec outside the range (0, 600], reverting to the default of %d", DEFAULT_HEALTH_CHECK_INTERVAL_IN_SEC))
 		config.HealthCheckIntervalInSec = DEFAULT_HEALTH_CHECK_INTERVAL_IN_SEC
 	}
 
 	if config.MaxRetries <= 0 || config.MaxRetries > 10 {
-		Logger.Warn(fmt.Sprintf("max_retries outside the range (0, 10], reverting to the default of %d", DEFAULT_MAX_RETRIES))
+		log.Warn(fmt.Sprintf("max_retries outside the range (0, 10], reverting to the default of %d", DEFAULT_MAX_RETRIES))
 		config.MaxRetries = DEFAULT_MAX_RETRIES
 	}
 

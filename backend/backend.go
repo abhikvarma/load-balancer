@@ -9,9 +9,7 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/abhikvarma/load-balancer/utils"
-
-	"go.uber.org/zap"
+	"github.com/charmbracelet/log"
 )
 
 type Backend interface {
@@ -63,7 +61,7 @@ func (b *backend) Serve(w http.ResponseWriter, r *http.Request) {
 
 	b.mux.Lock()
 	b.connections++
-	utils.Logger.Info(fmt.Sprintf("Sending request %s to %s", r.RequestURI, b.GetURL()))
+	log.Info(fmt.Sprintf("Sending request %s to %s", r.RequestURI, b.GetURL()))
 	b.mux.Unlock()
 	b.reverseProxy.ServeHTTP(w, r)
 }
@@ -72,7 +70,7 @@ func IsBackendAlive(ctx context.Context, aliveChanel chan bool, u *url.URL) {
 	var dialer net.Dialer
 	conn, err := dialer.DialContext(ctx, "tcp", u.Host)
 	if err != nil {
-		utils.Logger.Debug("Site Unreachable", zap.Error(err))
+		log.Debug("Site Unreachable", err)
 		aliveChanel <- false
 		return
 	}
