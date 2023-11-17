@@ -1,8 +1,8 @@
 # load-balancer
 
 <p float="left">
-  <img src='demo-server.gif' width='500'>
-  <img src='demo-client.gif' width='500'>
+  <img src='demo-server.gif' width='400'>
+  <img src='demo-client.gif' width='400'>
 </p>
 
 
