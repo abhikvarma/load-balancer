@@ -15,17 +15,13 @@ import (
 	"github.com/abhikvarma/load-balancer/loadbalancer"
 	"github.com/abhikvarma/load-balancer/serverpool"
 	"github.com/abhikvarma/load-balancer/utils"
-
-	"go.uber.org/zap"
+	"github.com/charmbracelet/log"
 )
 
 func main() {
-	logger := utils.InitLogger()
-	defer logger.Sync()
-
 	config, err := utils.GetLBConfig()
 	if err != nil {
-		utils.Logger.Fatal(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -33,40 +29,32 @@ func main() {
 
 	sp, err := serverpool.NewServerPool(utils.GetLBStrategy(config.Strategy))
 	if err != nil {
-		utils.Logger.Fatal(err.Error())
+		log.Fatal(err.Error())
 	}
 	lb := loadbalancer.NewLoadBalancer(sp)
 
 	for _, b := range config.Backends {
 		endpoint, err := url.Parse(b)
 		if err != nil {
-			utils.Logger.Fatal(err.Error())
+			log.Fatal(err.Error())
 		}
 
 		rp := httputil.NewSingleHostReverseProxy(endpoint)
 		backendServer := backend.NewBackend(endpoint, rp)
 		rp.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
-			logger.Info(fmt.Sprintf("error handling the request %s", r.RequestURI),
-				zap.String("host", endpoint.Host),
-				zap.Error(e),
-			)
+			log.Info(fmt.Sprintf("error handling the request %s", r.RequestURI), "host", endpoint.Host, e)
 
 			attempts, allow := loadbalancer.AllowRetry(r, config.MaxRetries)
 			if !allow {
-				utils.Logger.Info(
-					"max retry attempts reached, terminating",
-					zap.String("address", r.RemoteAddr),
-					zap.String("path", r.URL.Path),
+				log.Info(
+					"max retry attempts reached, terminating", "address", r.RemoteAddr, "path", r.URL.Path,
 				)
 				http.Error(w, "Service not available", http.StatusServiceUnavailable)
 				return
 			}
 
-			logger.Info(
-				"Attempting retry",
-				zap.String("address", r.RemoteAddr),
-				zap.String("path", r.URL.Path),
-				zap.Int("reties", attempts),
+			log.Info(
+				"Attempting retry", "address", r.RemoteAddr, "path", r.URL.Path, "reties", attempts,
 			)
 
 			lb.Serve(
@@ -90,17 +78,15 @@ func main() {
 		shutdownCtx, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
 		if err := server.Shutdown(shutdownCtx); err != nil {
-			logger.Fatal("Error in shutdown", zap.Error(err))
+			log.Fatal("Error in shutdown", err)
 		}
 	}()
 
-	logger.Info(
-		"load balancer started",
-		zap.String("strategy", config.Strategy),
-		zap.Int("port", config.Port),
+	log.Info(
+		"load balancer started", "strategy", config.Strategy, "port", config.Port,
 	)
 
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		logger.Fatal("ListenAndServe() error", zap.Error(err))
+		log.Fatal("ListenAndServe() error", err)
 	}
 }

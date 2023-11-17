@@ -7,8 +7,7 @@ import (
 
 	"github.com/abhikvarma/load-balancer/backend"
 	"github.com/abhikvarma/load-balancer/serverpool"
-	"github.com/abhikvarma/load-balancer/utils"
-	"go.uber.org/zap"
+	"github.com/charmbracelet/log"
 )
 
 type key int
@@ -43,11 +42,11 @@ func (lb *loadBalancer) Serve(w http.ResponseWriter, r *http.Request) {
 
 func (lb *loadBalancer) LaunchHealthCheck(ctx context.Context, health_check_interval_in_sec int) {
 	t := time.NewTicker(time.Second * time.Duration(health_check_interval_in_sec))
-	utils.Logger.Info("Starting health check...  ")
+	log.Info("Starting health check...  ")
 	for {
 		select {
 		case <-ctx.Done():
-			utils.Logger.Info("Closing health check")
+			log.Info("Closing health check")
 			return
 		case <-t.C:
 			go healthCheck(ctx, lb.serverpool)
@@ -68,7 +67,7 @@ func healthCheck(ctx context.Context, s serverpool.ServerPool) {
 
 		select {
 		case <-ctx.Done():
-			utils.Logger.Info("Gracefully shutting down health check")
+			log.Info("Gracefully shutting down health check")
 			return
 		case alive := <-aliveChannel:
 			b.SetAlive(alive)
@@ -76,10 +75,8 @@ func healthCheck(ctx context.Context, s serverpool.ServerPool) {
 				status = "down"
 			}
 		}
-		utils.Logger.Debug(
-			"URL Status",
-			zap.String("URL", b.GetURL().String()),
-			zap.String("status", status),
+		log.Debug(
+			"URL Status", "URL", b.GetURL().String(), "status", status,
 		)
 	}
 }
