@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
-	"sync"
 	"testing"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 )
 
 func dummyBackend(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 }
 
 func TestGetNextValidPeer(t *testing.T) {
@@ -45,24 +44,21 @@ func TestGetNextValidPeer(t *testing.T) {
 	sp.AddBackend(dummyBackend1)
 	sp.AddBackend(dummyBackend2)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	done := make(chan struct{})
 
 	peer1 := sp.GetNextValidPeer()
 	assert.NotNil(t, peer1)
-	t.Log("first peer url", peer1.GetURL().String())
 	go func() {
-		defer wg.Done()
+		defer close(done)
 		peer1.Serve(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/test", nil))
 	}()
 
 	time.Sleep(1 * time.Second)
 	peer2 := sp.GetNextValidPeer()
 	assert.NotNil(t, peer2)
-	t.Log("second peer url", peer2.GetURL().String())
 
 	assert.Equal(t, 0, peer2.GetActiveConnections())
 	assert.NotEqual(t, peer1, peer2)
 
-	wg.Wait()
+	<-done
 }
